@@ -18,7 +18,6 @@ public class SSLOutputStreamWrapper extends OutputStreamWrapper {
     }
 
     public void awaitPendingOps() {
-        logCall();
         callMethod(wrappedStream, "awaitPendingOps");
     }
 }

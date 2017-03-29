@@ -1,13 +1,8 @@
 package com.ljmu.andre.fitbitconnectionmonitor.Modules;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothSocket;
 import android.content.Context;
-import android.net.LocalSocket;
 
-import com.ljmu.andre.fitbitconnectionmonitor.DataModels.Packet;
+import com.ljmu.andre.fitbitconnectionmonitor.Packets.Packet;
 import com.ljmu.andre.fitbitconnectionmonitor.StreamWrappers.InputStreamWrapper;
 import com.ljmu.andre.fitbitconnectionmonitor.StreamWrappers.OutputStreamWrapper;
 import com.ljmu.andre.fitbitconnectionmonitor.StreamWrappers.SSLInputStreamWrapper;

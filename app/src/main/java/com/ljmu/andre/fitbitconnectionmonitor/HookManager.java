@@ -5,6 +5,8 @@ import android.util.Log;
 
 import com.ljmu.andre.fitbitconnectionmonitor.Modules.BluetoothMonitor;
 import com.ljmu.andre.fitbitconnectionmonitor.Modules.NetworkMonitor;
+import com.ljmu.andre.fitbitconnectionmonitor.Packets.Packet.PacketType;
+import com.ljmu.andre.fitbitconnectionmonitor.Utils.FileLogger;
 import com.ljmu.andre.fitbitconnectionmonitor.Utils.TimberUtils;
 
 import junit.framework.Assert;
@@ -61,7 +63,7 @@ public class HookManager implements IXposedHookLoadPackage {
                                             @Override protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                                                 Timber.d("Created fitbit application");
                                                 try {
-                                                    //new NetworkMonitor().init(fClassLoader, fContext);
+                                                    new NetworkMonitor().init(fClassLoader, fContext);
                                                     new BluetoothMonitor().init(fClassLoader, fContext);
                                                 } catch(Throwable t) {
                                                     Timber.e(t);

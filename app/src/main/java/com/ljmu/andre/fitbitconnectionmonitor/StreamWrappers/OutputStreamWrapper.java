@@ -1,6 +1,12 @@
 package com.ljmu.andre.fitbitconnectionmonitor.StreamWrappers;
 
 import android.nfc.Tag;
+import android.os.Parcel;
+import android.support.annotation.NonNull;
+
+import com.ljmu.andre.fitbitconnectionmonitor.Packets.Packet;
+import com.ljmu.andre.fitbitconnectionmonitor.Packets.Packet.PacketType;
+import com.ljmu.andre.fitbitconnectionmonitor.Utils.FileLogger;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -14,18 +20,16 @@ import timber.log.Timber;
  */
 
 public class OutputStreamWrapper extends OutputStream {
-    private InetAddress localAddress;
-    private InetAddress targetAddress;
-
-    static int total = 0;
+    private String localAddress;
+    private String targetAddress;
 
     String TAG = "OutputStreamWrapper";
     OutputStream wrappedStream;
 
     public OutputStreamWrapper(OutputStream wrappedStream, InetAddress localAddress, InetAddress targetAddress) {
         this.wrappedStream = wrappedStream;
-        this.localAddress = localAddress;
-        this.targetAddress = targetAddress;
+        this.localAddress = localAddress.toString();
+        this.targetAddress = targetAddress.toString();
     }
 
     OutputStreamWrapper(OutputStream wrappedStream, InetAddress localAddress, InetAddress targetAddress, String TAG) {
@@ -35,42 +39,43 @@ public class OutputStreamWrapper extends OutputStream {
 
 
     @Override public void write(int b) throws IOException {
-        logCall();
-        incrementTotal(b);
+        Packet packet = new Packet(PacketType.NETWORK_OUT)
+                .setSize(32)
+                .setSourceAddress(localAddress)
+                .setTargetAddress(targetAddress)
+                .setTimestamp();
+        FileLogger.addPacket(packet);
+
         wrappedStream.write(b);
     }
 
-    public void write(byte b[]) throws IOException {
-        logCall();
-        incrementTotal(b.length);
+    public void write(@NonNull byte b[]) throws IOException {
+        Packet packet = new Packet(PacketType.NETWORK_OUT)
+                .setSize(b.length)
+                .setSourceAddress(localAddress)
+                .setTargetAddress(targetAddress)
+                .setTimestamp();
+        FileLogger.addPacket(packet);
+
         wrappedStream.write(b);
     }
 
     public void write(byte b[], int off, int len) throws IOException {
-        logCall();
-        incrementTotal(len);
+        Packet packet = new Packet(PacketType.NETWORK_OUT)
+                .setSize(len)
+                .setSourceAddress(localAddress)
+                .setTargetAddress(targetAddress)
+                .setTimestamp();
+        FileLogger.addPacket(packet);
+
         wrappedStream.write(b, off, len);
     }
 
     public void flush() throws IOException {
-        logCall();
         wrappedStream.flush();
     }
 
     public void close() throws IOException {
-        logCall();
         wrappedStream.close();
-    }
-
-    public void logCall() {
-        Timber.d("[Call:%s] [From:%s][To:%s]", TAG, localAddress.getHostAddress(), targetAddress.getHostAddress());
-    }
-
-    public static int incrementTotal(int increase) {
-        total += increase;
-
-        Timber.d("Inc: " + increase + " Total: " + (total + InputStreamWrapper.total) + " Output: " + total + " Input: " + InputStreamWrapper.total);
-
-        return increase;
     }
 }

@@ -2,6 +2,10 @@ package com.ljmu.andre.fitbitconnectionmonitor.StreamWrappers;
 
 import android.support.annotation.NonNull;
 
+import com.ljmu.andre.fitbitconnectionmonitor.Packets.Packet;
+import com.ljmu.andre.fitbitconnectionmonitor.Packets.Packet.PacketType;
+import com.ljmu.andre.fitbitconnectionmonitor.Utils.FileLogger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -14,18 +18,16 @@ import timber.log.Timber;
  */
 
 public class InputStreamWrapper extends InputStream {
-    private InetAddress localAddress;
-    private InetAddress targetAddress;
-
-    static int total = 0;
+    private String localAddress;
+    private String targetAddress;
 
     String TAG = "InputStreamWrapper";
     InputStream wrappedStream;
 
     public InputStreamWrapper(InputStream wrappedStream, InetAddress localAddress, InetAddress targetAddress) {
         this.wrappedStream = wrappedStream;
-        this.localAddress = localAddress;
-        this.targetAddress = targetAddress;
+        this.localAddress = localAddress.toString();
+        this.targetAddress = targetAddress.toString();
     }
 
     InputStreamWrapper(InputStream wrappedStream, InetAddress localAddress, InetAddress targetAddress, String TAG) {
@@ -34,59 +36,74 @@ public class InputStreamWrapper extends InputStream {
     }
 
     @Override public int read() throws IOException {
-        logCall();
-        return incrementTotal(wrappedStream.read());
+        int size = wrappedStream.read();
+
+        if(size != -1) {
+            Packet packet = new Packet(PacketType.NETWORK_IN)
+                    .setSize(size)
+                    .setSourceAddress(localAddress)
+                    .setTargetAddress(targetAddress)
+                    .setTimestamp();
+
+            FileLogger.addPacket(packet);
+        }
+
+        return size;
     }
 
     public int read(@NonNull byte b[]) throws IOException {
-        logCall();
-        return incrementTotal(wrappedStream.read(b));
+        int size = wrappedStream.read(b);
+
+        if(size != -1) {
+            Packet packet = new Packet(PacketType.NETWORK_IN)
+                    .setSize(size)
+                    .setSourceAddress(localAddress)
+                    .setTargetAddress(targetAddress)
+                    .setTimestamp();
+
+            FileLogger.addPacket(packet);
+        }
+
+        return size;
     }
 
     public int read(@NonNull byte b[], int off, int len) throws IOException {
-        logCall();
-        return incrementTotal(wrappedStream.read(b, off, len));
+        int size = wrappedStream.read(b, off, len);
+
+        if(size != -1) {
+            Packet packet = new Packet(PacketType.NETWORK_IN)
+                    .setSize(size)
+                    .setSourceAddress(localAddress)
+                    .setTargetAddress(targetAddress)
+                    .setTimestamp();
+
+            FileLogger.addPacket(packet);
+        }
+
+        return size;
     }
 
     public long skip(long n) throws IOException {
-        logCall();
         return wrappedStream.skip(n);
     }
 
     public int available() throws IOException {
-        logCall();
         return wrappedStream.available();
     }
 
     public void close() throws IOException {
-        logCall();
         wrappedStream.close();
     }
 
     public synchronized void mark(int readlimit) {
-        logCall();
         wrappedStream.mark(readlimit);
     }
 
     public synchronized void reset() throws IOException {
-        logCall();
         wrappedStream.reset();
     }
 
     public boolean markSupported() {
-        logCall();
         return wrappedStream.markSupported();
-    }
-
-    public void logCall() {
-        Timber.d("[Call:%s] [From:%s][To:%s]", TAG, localAddress.getHostAddress(), targetAddress.getHostAddress());
-    }
-
-    public static int incrementTotal(int increase) {
-        total += increase;
-
-        Timber.d("Inc: " + increase + " Total: " + (total + OutputStreamWrapper.total) + " Input: " + total + " Output: " + OutputStreamWrapper.total);
-
-        return increase;
     }
 }
